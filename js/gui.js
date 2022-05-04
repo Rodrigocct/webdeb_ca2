@@ -48,6 +48,29 @@ function execute(commands) {
 	outputElm.textContent = "Fetching results...";
 }
 
+function executeSql(clicked_object) {
+	var sql_text = clicked_object.getAttribute('data-sql');
+	console.log(sql_text);
+	tic();
+	worker.onmessage = function (event) {
+		var results = event.data.results;
+		toc("Executing SQL");
+		if (!results) {
+			error({message: event.data.error});
+			return;
+		}
+
+		tic();
+		outputElm.innerHTML = "";
+		for (var i = 0; i < results.length; i++) {
+			outputElm.appendChild(tableCreate(results[i].columns, results[i].values));
+		}
+		toc("Displaying results");
+	}
+	worker.postMessage({ action: 'exec', sql: sql_text });
+	outputElm.textContent = "Fetching results...";
+}
+
 // Create an HTML table
 var tableCreate = function () {
 	function valconcat(vals, tagName) {
